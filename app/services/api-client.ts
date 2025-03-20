@@ -32,6 +32,9 @@ export const ApiClient = {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), ENV.API.TIMEOUT);
       
+      console.log('GET isteği gönderiliyor:', requestUrl);
+      console.log('Headers:', headers);
+      
       const response = await fetch(requestUrl, {
         method: 'GET',
         headers,
@@ -61,6 +64,10 @@ export const ApiClient = {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), ENV.API.TIMEOUT);
+      
+      console.log('POST isteği gönderiliyor:', url);
+      console.log('Data:', data);
+      console.log('Headers:', headers);
       
       const response = await fetch(url, {
         method: 'POST',

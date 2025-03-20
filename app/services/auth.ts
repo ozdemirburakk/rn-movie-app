@@ -23,7 +23,7 @@ export const AuthService = {
    */
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
     try {
-      // API isteği gönder (ApiClient token eklemez çünkü henüz token yok)
+      // Login sırasında henüz token olmadığı için bu istek yetkilendirme header'ı olmadan gönderilir
       return await ApiClient.post<LoginResponse>('LOGIN', credentials);
     } catch (error) {
       console.error('Login isteği sırasında hata:', error);

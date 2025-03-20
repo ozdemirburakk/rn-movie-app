@@ -26,6 +26,7 @@ export const LocationService = {
    */
   sendLocation: async (locationData: LocationData): Promise<LocationResponse> => {
     try {
+      // Token header olarak otomatik eklenecek
       return await ApiClient.post<LocationResponse>('SEND_LOCATION', locationData);
     } catch (error) {
       console.error('Konum gönderme sırasında hata:', error);

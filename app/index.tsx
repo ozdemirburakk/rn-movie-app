@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, TouchableOpacity, ActivityIndicator, Alert, Platform, ScrollView } from 'react-native';
+import { Text, View, TouchableOpacity, ActivityIndicator, Alert, Platform, ScrollView, SafeAreaView, StatusBar } from 'react-native';
 import * as Location from 'expo-location';
 import * as Device from 'expo-device';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,6 +12,7 @@ const DEVICE_ID_STORAGE_KEY = '@app_device_id';
 const LOGIN_STATUS_KEY = '@app_login_status';
 const LOGIN_DATA_KEY = '@app_login_data';
 const LOGOUT_DATA_KEY = '@app_logout_data';
+const AUTH_TOKEN_KEY = '@app_auth_token';
 
 export default function Index() {
   const { logout } = useAuth();
@@ -21,6 +22,7 @@ export default function Index() {
   const [deviceId, setDeviceId] = useState<string>('unknown_device');
   const [loginData, setLoginData] = useState<LocationData | null>(null);
   const [logoutData, setLogoutData] = useState<LocationData | null>(null);
+  const [authToken, setAuthToken] = useState<string | null>(null);
 
   useEffect(() => {
     // Başlangıç durumlarını yükle
@@ -61,6 +63,10 @@ export default function Index() {
           const parsedLogoutData = JSON.parse(logoutDataStr) as LocationData;
           setLogoutData(parsedLogoutData);
         }
+        
+        // Token bilgisini yükle
+        const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+        setAuthToken(token);
       } catch (error) {
         console.warn('Başlangıç verilerini yükleme hatası:', error);
         // Hata durumunda, en azından benzersiz bir device ID oluştur
@@ -163,6 +169,10 @@ export default function Index() {
           // Başarılı giriş
           setLoginData(newLoginData);
           setIsLoggedIn(true);
+          
+          // Token'ı yeniden yükle
+          const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+          setAuthToken(token);
           
           // Giriş durumunu ve verilerini AsyncStorage'a kaydet
           await AsyncStorage.setItem(LOGIN_STATUS_KEY, 'true');
@@ -269,63 +279,74 @@ export default function Index() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-gray-100">
-      <View className="items-center justify-center flex-1 p-5">
-        <View className="flex-row items-center justify-between w-full mb-6">
-          <Text className="text-xl font-bold text-gray-800">Lokasyon Takip</Text>
-          <TouchableOpacity 
-            className="px-4 py-2 bg-red-100 rounded-lg"
-            onPress={handleSignOut}
-          >
-            <Text className="font-medium text-red-600">Oturumu Kapat</Text>
-          </TouchableOpacity>
-        </View>
-        
-        <Text className="mb-2 text-gray-600">Cihaz ID: {deviceId}</Text>
-        
-        <TouchableOpacity 
-          className={`
-            py-3 px-6 rounded-lg min-w-[200px] h-12 items-center justify-center
-            ${isLoggedIn ? 'bg-red-500' : 'bg-green-500'}
-            ${isLoading ? 'opacity-70' : 'opacity-100'}
-          `}
-          onPress={handleLoginLogout}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="white" size="small" />
-          ) : (
-            <Text className="text-base font-bold text-white">
-              {isLoggedIn ? 'Çıkış Yap' : 'Giriş Yap'}
-            </Text>
-          )}
-        </TouchableOpacity>
-        
-        {/* Giriş ve Çıkış verilerini gösterme */}
-        <View className="w-full mt-8">
-          {loginData && (
-            <View className="w-full p-5 mb-6 bg-white rounded-lg shadow">
-              <Text className="mb-4 text-lg font-bold text-gray-800">Giriş Bilgileri:</Text>
-              <Text className="mb-2 text-base text-gray-700">Device ID: {loginData.device_id}</Text>
-              <Text className="mb-2 text-base text-gray-700">Latitude: {loginData.latitude}</Text>
-              <Text className="mb-2 text-base text-gray-700">Longitude: {loginData.longitude}</Text>
-              <Text className="mb-2 text-base text-gray-700">Tarih: {loginData.date}</Text>
-              <Text className="mb-2 text-base text-gray-700">Saat: {loginData.time}</Text>
+    <SafeAreaView className="flex-1 bg-gray-100">
+      <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" />
+      <ScrollView className="flex-1">
+        <View className="items-center flex-1 p-5 pt-3">
+          <View className="flex-row items-center justify-between w-full mt-2 mb-6">
+            <Text className="text-xl font-bold text-gray-800">Lokasyon Takip</Text>
+            <TouchableOpacity 
+              className="bg-red-100 py-1.5 px-3 rounded-lg"
+              onPress={handleSignOut}
+            >
+              <Text className="text-sm font-medium text-red-600">Oturumu Kapat</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <Text className="mb-2 text-sm text-gray-600">Cihaz ID: {deviceId}</Text>
+          
+          {/* Token bilgisi (test için) */}
+          {authToken && (
+            <View className="w-full p-3 mb-5 border border-yellow-200 rounded-lg bg-yellow-50">
+              <Text className="mb-1 text-sm font-bold text-yellow-800">Auth Token:</Text>
+              <Text className="text-xs text-yellow-700 break-all">{authToken}</Text>
             </View>
           )}
           
-          {logoutData && (
-            <View className="w-full p-5 bg-white rounded-lg shadow">
-              <Text className="mb-4 text-lg font-bold text-gray-800">Çıkış Bilgileri:</Text>
-              <Text className="mb-2 text-base text-gray-700">Device ID: {logoutData.device_id}</Text>
-              <Text className="mb-2 text-base text-gray-700">Latitude: {logoutData.latitude}</Text>
-              <Text className="mb-2 text-base text-gray-700">Longitude: {logoutData.longitude}</Text>
-              <Text className="mb-2 text-base text-gray-700">Tarih: {logoutData.date}</Text>
-              <Text className="mb-2 text-base text-gray-700">Saat: {logoutData.time}</Text>
-            </View>
-          )}
+          <TouchableOpacity 
+            className={`
+              py-3 px-6 rounded-lg min-w-[200px] h-12 items-center justify-center
+              ${isLoggedIn ? 'bg-red-500' : 'bg-green-500'}
+              ${isLoading ? 'opacity-70' : 'opacity-100'}
+            `}
+            onPress={handleLoginLogout}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <Text className="text-base font-bold text-white">
+                {isLoggedIn ? 'Çıkış Yap' : 'Giriş Yap'}
+              </Text>
+            )}
+          </TouchableOpacity>
+          
+          {/* Giriş ve Çıkış verilerini gösterme */}
+          <View className="w-full mt-8">
+            {loginData && (
+              <View className="w-full p-5 mb-6 bg-white rounded-lg shadow">
+                <Text className="mb-4 text-lg font-bold text-gray-800">Giriş Bilgileri:</Text>
+                <Text className="mb-2 text-base text-gray-700">Device ID: {loginData.device_id}</Text>
+                <Text className="mb-2 text-base text-gray-700">Latitude: {loginData.latitude}</Text>
+                <Text className="mb-2 text-base text-gray-700">Longitude: {loginData.longitude}</Text>
+                <Text className="mb-2 text-base text-gray-700">Tarih: {loginData.date}</Text>
+                <Text className="mb-2 text-base text-gray-700">Saat: {loginData.time}</Text>
+              </View>
+            )}
+            
+            {logoutData && (
+              <View className="w-full p-5 mb-4 bg-white rounded-lg shadow">
+                <Text className="mb-4 text-lg font-bold text-gray-800">Çıkış Bilgileri:</Text>
+                <Text className="mb-2 text-base text-gray-700">Device ID: {logoutData.device_id}</Text>
+                <Text className="mb-2 text-base text-gray-700">Latitude: {logoutData.latitude}</Text>
+                <Text className="mb-2 text-base text-gray-700">Longitude: {logoutData.longitude}</Text>
+                <Text className="mb-2 text-base text-gray-700">Tarih: {logoutData.date}</Text>
+                <Text className="mb-2 text-base text-gray-700">Saat: {logoutData.time}</Text>
+              </View>
+            )}
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }

@@ -66,6 +66,10 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   // Oturum açma fonksiyonu
   const login = async (newToken: string) => {
     try {
+        console.log('==================================');
+        console.log('LOGIN: Token kaydediliyor');
+        console.log(newToken);
+        console.log('==================================');
       await AsyncStorage.setItem(AUTH_TOKEN_KEY, newToken);
       setToken(newToken);
       setIsAuthenticated(true);
@@ -78,6 +82,12 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   // Oturum kapatma fonksiyonu
   const logout = async () => {
     try {
+        const currentToken = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+    
+        console.log('==================================');
+        console.log('LOGOUT: Token siliniyor');
+        console.log(currentToken);
+        console.log('==================================');
       await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
       setToken(null);
       setIsAuthenticated(false);

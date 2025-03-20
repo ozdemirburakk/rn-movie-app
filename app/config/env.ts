@@ -12,12 +12,13 @@ export const ENV = {
       // Ana API URL (trailing slash olmadan)
       BASE_URL: 'http://64.226.70.37:3000',
       
-  
+      // API versiyonu (gerekirse)
+      VERSION: '',
       
       // API endpoint'leri
       ENDPOINTS: {
-        SEND_LOCATION: '/save-location',
-        LOGIN: '/login',
+        SEND_LOCATION: '/location/save-location',
+        LOGIN: '/auth/login',
         // Diğer endpoint'leri buraya ekleyebilirsiniz
       },
       
@@ -43,7 +44,9 @@ export const ENV = {
     // Endpoint'in başında / olduğundan emin olun
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     
-   
+    if (ENV.API.VERSION) {
+      return `${ENV.API.BASE_URL}/${ENV.API.VERSION}${normalizedEndpoint}`;
+    }
     
     return `${ENV.API.BASE_URL}${normalizedEndpoint}`;
   };
