@@ -1,5 +1,5 @@
 // app/services/location.ts
-import { ENV, getApiEndpoint } from '../config/env';
+import { ApiClient } from './api-client';
 
 export interface LocationData {
   device_id: string;
@@ -9,9 +9,9 @@ export interface LocationData {
   time: string;
 }
 
-interface ApiResponse<T> {
+interface LocationResponse {
   success: boolean;
-  data?: T;
+  message?: string;
   error?: string;
 }
 
@@ -24,41 +24,11 @@ export const LocationService = {
    * @param locationData Konum bilgisi
    * @returns API yanıtı
    */
-  sendLocation: async (locationData: LocationData): Promise<ApiResponse<any>> => {
-    const url = getApiEndpoint('SEND_LOCATION');
-    
+  sendLocation: async (locationData: LocationData): Promise<LocationResponse> => {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), ENV.API.TIMEOUT);
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(locationData),
-        signal: controller.signal,
-      });
-      
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(
-          errorData?.error || `HTTP error! Status: ${response.status}`
-        );
-      }
-
-      return await response.json();
+      return await ApiClient.post<LocationResponse>('SEND_LOCATION', locationData);
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('İstek zaman aşımına uğradı');
-      }
-      
-      if (ENV.APP.DEBUG) {
-        console.error(`Konum gönderme sırasında hata (${url}):`, error);
-      }
-      
+      console.error('Konum gönderme sırasında hata:', error);
       throw error;
     }
   },

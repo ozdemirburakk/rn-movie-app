@@ -17,6 +17,7 @@ export const ENV = {
       // API endpoint'leri
       ENDPOINTS: {
         SEND_LOCATION: '/save-location',
+        LOGIN: '/login',
         // Diğer endpoint'leri buraya ekleyebilirsiniz
       },
       

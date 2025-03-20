@@ -5,6 +5,7 @@ import * as Device from 'expo-device';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LocationService, LocationData } from './services/location';
 import { ENV } from './config/env';
+import { useAuth } from './providers/auth-provider';
 
 // AsyncStorage anahtarları
 const DEVICE_ID_STORAGE_KEY = '@app_device_id';
@@ -13,6 +14,7 @@ const LOGIN_DATA_KEY = '@app_login_data';
 const LOGOUT_DATA_KEY = '@app_logout_data';
 
 export default function Index() {
+  const { logout } = useAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [locationPermission, setLocationPermission] = useState(false);
@@ -254,9 +256,31 @@ export default function Index() {
     }
   };
 
+  // Uygulamadan çıkış (auth logout)
+  const handleSignOut = () => {
+    Alert.alert(
+      'Çıkış',
+      'Uygulamadan çıkış yapmak istediğinizden emin misiniz?',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Çıkış Yap', style: 'destructive', onPress: () => logout() }
+      ]
+    );
+  };
+
   return (
     <ScrollView className="flex-1 bg-gray-100">
       <View className="items-center justify-center flex-1 p-5">
+        <View className="flex-row items-center justify-between w-full mb-6">
+          <Text className="text-xl font-bold text-gray-800">Lokasyon Takip</Text>
+          <TouchableOpacity 
+            className="px-4 py-2 bg-red-100 rounded-lg"
+            onPress={handleSignOut}
+          >
+            <Text className="font-medium text-red-600">Oturumu Kapat</Text>
+          </TouchableOpacity>
+        </View>
+        
         <Text className="mb-2 text-gray-600">Cihaz ID: {deviceId}</Text>
         
         <TouchableOpacity 
